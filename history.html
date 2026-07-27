@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WOLFFIA · History</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="topbar"><div class="topbar-in">
+  <a class="brand" href="index.html">WOLFF<span>IA</span></a>
+  <nav class="nav">
+    <a href="index.html">Dashboard</a>
+    <a href="system.html">System</a>
+    <a href="history.html" class="on">History</a>
+  </nav>
+</div></div>
+
+<div class="wrap">
+
+  <div class="head">
+    <div>
+      <h1>History</h1>
+      <div class="sub">ข้อมูลย้อนหลังตามช่วงวันและเวลา · เรียงลำดับ ดูค่าสรุป และดาวน์โหลดเป็น CSV</div>
+    </div>
+    <div class="right">
+      <span class="pill" id="status">connecting…</span>
+      <div class="stamp" id="fetched"></div>
+    </div>
+  </div>
+
+  <div class="banner" id="banner"></div>
+
+  <div class="controls">
+    <div class="field"><label>From</label><input type="datetime-local" id="from"></div>
+    <div class="field"><label>To</label><input type="datetime-local" id="to"></div>
+    <div class="field"><label>Quick range</label>
+      <div class="quick" id="quick">
+        <button class="btn sm" data-h="24">24 h</button>
+        <button class="btn sm" data-h="72">3 d</button>
+        <button class="btn sm" data-h="168">7 d</button>
+        <button class="btn sm on" data-h="0">All</button>
+      </div>
+    </div>
+    <div class="field"><label>Rows per page</label>
+      <select id="pageSize"><option>50</option><option selected>100</option><option>250</option><option>1000</option></select>
+    </div>
+    <div class="field" style="margin-left:auto"><label>Export</label>
+      <div class="quick">
+        <button class="btn sm primary" id="csv">Download CSV</button>
+        <button class="btn sm" id="reload">Reload sheet</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="k-label">Records in range</div><div class="k-val" id="sCount">—</div><div class="k-sub" id="sSpan">—</div></div>
+    <div class="kpi p2"><div class="k-label">Mean CO₂ reduced</div><div class="k-val" id="sRed">—<small>ppm</small></div><div class="k-sub" id="sRedSub">—</div></div>
+    <div class="kpi p1"><div class="k-label">Mean overall efficiency</div><div class="k-val" id="sEff">—<small>%</small></div><div class="k-sub" id="sEffSub">—</div></div>
+    <div class="kpi p3"><div class="k-label">Mean by stage</div><div class="k-val" id="sStage">—</div><div class="k-sub">Wolffia / CaO</div></div>
+  </div>
+
+  <div class="charts one" id="charts" style="margin-bottom:22px"></div>
+
+  <div class="table-wrap">
+    <table id="tbl">
+      <thead><tr>
+        <th data-k="t">Date</th>
+        <th data-k="t2">Time</th>
+        <th data-k="c1">CO₂_1 (ppm)</th>
+        <th data-k="c2">CO₂_2 (ppm)</th>
+        <th data-k="c3">CO₂_3 (ppm)</th>
+        <th data-k="reduced">Reduced (ppm)</th>
+        <th data-k="effW">Wolffia (%)</th>
+        <th data-k="effC">CaO (%)</th>
+        <th data-k="effO">Overall (%)</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+      <tfoot><tr id="tfoot"></tr></tfoot>
+    </table>
+  </div>
+
+  <div class="pager">
+    <button class="btn sm" id="prev">Previous</button>
+    <span id="pageInfo">—</span>
+    <button class="btn sm" id="next">Next</button>
+  </div>
+
+  <p class="footnote">
+    Click any column heading to sort. The CSV contains every record in the selected range, not just the page on screen.
+    ค่าที่ดาวน์โหลดคือข้อมูลทั้งช่วงที่กรองไว้ ไม่ใช่เฉพาะหน้าที่แสดง
+  </p>
+</div>
+
+<script src="data.js"></script>
+<script src="charts.js"></script>
+<script src="history.js"></script>
+</body>
+</html>

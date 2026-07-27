@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WOLFFIA · System</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .lamp-on   { fill: #ffd98a; }
+  .lamp-off  { fill: #3c4b52; }
+  .glow      { fill: url(#lampGlow); }
+  .tank      { fill: #16323f; stroke: var(--line); stroke-width: 2; }
+  .water     { fill: #1d5f7a; opacity: .75; }
+  .pipe      { stroke: #55707c; stroke-width: 3; fill: none; }
+  .wire      { stroke: #3d5a66; stroke-width: 1.4; fill: none; stroke-dasharray: 4 4; }
+  .wire.live { stroke: var(--acc); }
+  .box       { fill: var(--panel-2); stroke: var(--line); stroke-width: 1.5; }
+  .sensor-box.live { stroke: var(--acc); }
+  .sensor-box.stale{ stroke: var(--warn); }
+  .sensor-box.off  { stroke: var(--bad); }
+  .dim       { opacity: .45; }
+  .photo-view { display: none; }
+  .photo-view img { width: 100%; border-radius: 10px; display: block; }
+  body.photo .diagram-view { display: none; }
+  body.photo .photo-view { display: block; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="topbar"><div class="topbar-in">
+  <a class="brand" href="index.html">WOLFF<span>IA</span></a>
+  <nav class="nav">
+    <a href="index.html">Dashboard</a>
+    <a href="system.html" class="on">System</a>
+    <a href="history.html">History</a>
+  </nav>
+</div></div>
+
+<div class="wrap">
+
+  <div class="head">
+    <div>
+      <h1>System overview</h1>
+      <div class="sub">ผังการทำงานของระบบ พร้อมค่าที่อ่านได้ล่าสุดจากเซนเซอร์แต่ละตัว</div>
+    </div>
+    <div class="right">
+      <span class="pill" id="status">connecting…</span>
+      <div class="stamp" id="fetched"></div>
+    </div>
+  </div>
+
+  <div class="banner" id="banner"></div>
+
+  <div class="controls">
+    <div class="field"><label>View</label>
+      <div class="quick">
+        <button class="btn sm on" id="btnDiagram">Live diagram</button>
+        <button class="btn sm" id="btnPhoto">Reference drawing</button>
+      </div>
+    </div>
+    <div class="field"><label>LED lamp on at <b id="onLabel">06:00</b></label>
+      <input type="range" id="ledOn" min="0" max="23" value="6"></div>
+    <div class="field"><label>LED lamp off at <b id="offLabel">18:00</b></label>
+      <input type="range" id="ledOff" min="0" max="23" value="18"></div>
+    <div class="field" style="margin-left:auto"><label>Photoperiod</label>
+      <span class="pill" id="ledState">—</span></div>
+  </div>
+
+  <div class="sys-grid">
+    <div>
+      <div class="diagram-box diagram-view">
+        <svg viewBox="0 0 960 470" role="img" aria-label="Live diagram of the CO2 capture system">
+          <defs>
+            <radialGradient id="lampGlow"><stop offset="0%" stop-color="#ffd98a" stop-opacity=".45"/><stop offset="100%" stop-color="#ffd98a" stop-opacity="0"/></radialGradient>
+            <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+              <path d="M0,0 L9,4.5 L0,9 z" fill="#6fbf9c"/>
+            </marker>
+          </defs>
+
+          <!-- air in / out -->
+          <line x1="18" y1="140" x2="82" y2="140" class="pipe" stroke="#6fbf9c" marker-end="url(#ar)"/>
+          <text x="18" y="126" class="sw-lab">AIR IN</text>
+          <line x1="928" y1="140" x2="952" y2="140" class="pipe" stroke="#6fbf9c" marker-end="url(#ar)"/>
+          <text x="878" y="112" class="sw-lab">AIR OUT</text>
+
+          <!-- pipework -->
+          <path class="pipe" id="pipeA" d="M160,140 H300 V182"/>
+          <path class="pipe" id="pipeB" d="M430,182 V140 H500"/>
+          <path class="pipe" id="pipeC" d="M570,140 H660 V182"/>
+          <path class="pipe" id="pipeD" d="M790,182 V140 H855"/>
+
+          <!-- LED lamp -->
+          <ellipse id="lampGlowEl" cx="360" cy="120" rx="120" ry="46" class="glow"/>
+          <rect x="292" y="96" width="136" height="15" rx="4" id="lamp" class="lamp-off"/>
+          <rect x="286" y="90" width="148" height="9" rx="3" fill="#2b3940"/>
+          <text x="440" y="107" class="sw-lab" id="lampLabel">LED LAMP</text>
+
+          <!-- Wolffia tank -->
+          <rect x="250" y="182" width="220" height="180" rx="6" class="tank"/>
+          <rect x="254" y="222" width="212" height="136" rx="4" class="water"/>
+          <rect x="254" y="214" width="212" height="10" fill="#5fbf70" opacity=".9"/>
+          <text x="262" y="206" class="sw-text">Wolffia tank</text>
+          <text x="262" y="252" class="sw-lab">WOLFFIA MAT · 3 g → 9 g / 7 d</text>
+          <circle cx="360" cy="340" r="9" fill="#2d4a63"/>
+          <text x="374" y="344" class="sw-lab">DIFFUSER</text>
+          <g class="dim"><line x1="444" y1="214" x2="444" y2="300" stroke="#c9d6db" stroke-width="4"/><text x="406" y="316" class="sw-lab">pH 1</text></g>
+
+          <!-- Seashell tank -->
+          <rect x="610" y="182" width="220" height="180" rx="6" class="tank"/>
+          <rect x="614" y="222" width="212" height="136" rx="4" class="water"/>
+          <rect x="614" y="322" width="212" height="36" fill="#9aa39c" opacity=".55"/>
+          <text x="622" y="206" class="sw-text">CaO tank · seashell</text>
+          <text x="622" y="252" class="sw-lab">DI WATER · CaO BED 900 °C</text>
+          <circle cx="720" cy="340" r="9" fill="#2d4a63"/>
+          <g class="dim"><line x1="804" y1="214" x2="804" y2="300" stroke="#c9d6db" stroke-width="4"/><text x="766" y="316" class="sw-lab">pH 2</text></g>
+
+          <!-- pumps -->
+          <rect x="196" y="236" width="46" height="38" rx="6" class="box"/>
+          <text x="200" y="260" class="sw-lab">PUMP 1</text>
+          <path class="pipe" d="M242,255 H250"/>
+          <rect x="524" y="236" width="46" height="38" rx="6" class="box"/>
+          <text x="528" y="260" class="sw-lab">PUMP 2</text>
+          <path class="pipe" d="M570,255 H610"/>
+
+          <!-- floor -->
+          <line x1="230" y1="366" x2="850" y2="366" stroke="#2a4550" stroke-width="3"/>
+
+          <!-- sensors -->
+          <g id="s1g">
+            <rect x="90" y="120" width="70" height="40" rx="7" class="box sensor-box" id="s1box"/>
+            <text x="98" y="136" class="sw-lab">CO₂_1</text>
+            <text x="98" y="153" class="sw-val" id="s1val">—</text>
+          </g>
+          <g id="s2g">
+            <rect x="500" y="120" width="70" height="40" rx="7" class="box sensor-box" id="s2box"/>
+            <text x="508" y="136" class="sw-lab">CO₂_2</text>
+            <text x="508" y="153" class="sw-val" id="s2val">—</text>
+          </g>
+          <g id="s3g">
+            <rect x="855" y="120" width="70" height="40" rx="7" class="box sensor-box" id="s3box"/>
+            <text x="863" y="136" class="sw-lab">CO₂_3</text>
+            <text x="863" y="153" class="sw-val" id="s3val">—</text>
+          </g>
+
+          <!-- data bus -->
+          <path class="wire" id="w1" d="M125,160 V390"/>
+          <path class="wire" id="w2" d="M535,160 V200 H590 V390"/>
+          <path class="wire" id="w3" d="M890,160 V390"/>
+          <path class="wire" id="wbus" d="M125,390 H890 M480,390 V405"/>
+
+          <rect x="390" y="405" width="180" height="50" rx="8" class="box"/>
+          <text x="404" y="425" class="sw-text">IoT data logger</text>
+          <text x="404" y="443" class="sw-lab" id="loggerNote">ESP32 · RTC · microSD</text>
+
+          <path class="wire" id="wcloud" d="M570,430 H700"/>
+          <text x="590" y="422" class="sw-lab">HTTPS</text>
+          <rect x="700" y="405" width="200" height="50" rx="8" class="box"/>
+          <text x="714" y="425" class="sw-text">Google Sheets</text>
+          <text x="714" y="443" class="sw-lab" id="cloudNote">—</text>
+        </svg>
+      </div>
+
+      <div class="photo-view card">
+        <img src="system.png" alt="System overview drawing">
+        <p class="hint" style="margin-bottom:0">Reference drawing used in the report · รูปผังระบบเดิม</p>
+      </div>
+
+      <p class="footnote">
+        Sensor readings and link status come from the logging sheet. The lamp state follows the photoperiod
+        set above — the lamp has no telemetry channel in this feed, so it is shown as a schedule, not a measurement.
+        pH probes are wired on the logger but their columns are not present in this sheet, so they are drawn dimmed.
+      </p>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <h3>Right now</h3>
+        <div class="stamp" id="nowStamp" style="margin:6px 0 12px"></div>
+        <div class="kpi" style="border:0;padding:0">
+          <div class="k-label">Overall efficiency</div>
+          <div class="k-val" id="nowEff">—<small>%</small></div>
+          <div class="k-sub" id="nowRed">—</div>
+        </div>
+      </div>
+      <h3 style="font-size:14px;margin:0 0 10px;color:var(--muted)">Devices</h3>
+      <div class="dev-list" id="devices"></div>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="system.js"></script>
+</body>
+</html>
